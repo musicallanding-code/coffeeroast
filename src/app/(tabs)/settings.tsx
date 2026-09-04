@@ -2,6 +2,7 @@ import Constants from 'expo-constants';
 import { View } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
+import { BrandHeader } from '@/components/BrandHeader';
 import { SensorSettings } from '@/components/SensorSettings';
 import { SetupNotice } from '@/components/SetupNotice';
 import { AppText, Button, Card, Row, Screen } from '@/components/ui/kit';
@@ -41,7 +42,8 @@ export default function SettingsScreen() {
         <AppText variant="label" color="textSecondary">
           {t.settings.about}
         </AppText>
-        <Row style={{ justifyContent: 'space-between' }}>
+        <BrandHeader />
+        <Row style={{ justifyContent: 'space-between', marginTop: Spacing.one }}>
           <AppText>{t.settings.version}</AppText>
           <AppText>{Constants.expoConfig?.version ?? '—'}</AppText>
         </Row>

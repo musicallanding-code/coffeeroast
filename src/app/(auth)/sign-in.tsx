@@ -40,9 +40,14 @@ export default function SignInScreen() {
   return (
     <Screen scroll>
       <View style={{ flexGrow: 1, justifyContent: 'center', gap: Spacing.four, maxWidth: 420, width: '100%', alignSelf: 'center' }}>
-        <AppText variant="display" style={{ textAlign: 'center' }}>
-          {t.appName}
-        </AppText>
+        <View style={{ gap: Spacing.half }}>
+          <AppText variant="display" style={{ textAlign: 'center' }}>
+            {t.appName}
+          </AppText>
+          <AppText variant="label" color="textSecondary" style={{ textAlign: 'center', letterSpacing: 0.5 }}>
+            {t.appNameEn}
+          </AppText>
+        </View>
         <Card>
           <AppText variant="heading">{mode === 'in' ? t.auth.signInTitle : t.auth.signUpTitle}</AppText>
           {mode === 'up' && (

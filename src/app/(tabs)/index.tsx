@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { View } from 'react-native';
 
+import { BrandHeader } from '@/components/BrandHeader';
 import { RoastListRow } from '@/components/RoastListRow';
 import { SetupNotice } from '@/components/SetupNotice';
 import { StatTile } from '@/components/StatTile';
@@ -17,6 +18,7 @@ export default function HomeScreen() {
 
   return (
     <Screen scroll>
+      <BrandHeader />
       <SetupNotice />
 
       <Button label={t.home.startRoast} onPress={() => router.push('/roast/start')} />

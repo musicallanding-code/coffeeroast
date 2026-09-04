@@ -51,7 +51,7 @@ export class MockSensor implements Sensor {
   }
 
   /** Roaster controls (0–10). Affects how fast the bean temp climbs. */
-  setControls(gas: number, airflow: number) {
+  applyControls(gas: number, airflow: number) {
     this.gas = clamp(gas, 0, 10);
     this.airflow = clamp(airflow, 0, 10);
   }

@@ -1,13 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useRef } from 'react';
 import { Alert, Pressable, ScrollView, View } from 'react-native';
+import type Svg from 'react-native-svg';
 
 import { RoastChart } from '@/components/RoastChart';
-import { AppText, Card, Pill, Row } from '@/components/ui/kit';
+import { AppText, Button, Card, Pill, Row } from '@/components/ui/kit';
 import { Spacing } from '@/constants/theme';
 import { useDeleteRoastBatch, useRoastBatch, useRoastCurve } from '@/db/roasts';
 import { eventsFromBatch } from '@/db/types';
 import { t } from '@/i18n/zh-TW';
+import { exportRoastCsv, exportRoastPng } from '@/roast/exportRoast';
 import { developmentTimeRatio, formatClock, weightLossPct } from '@/roast/roastMath';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -22,6 +25,27 @@ export default function RoastDetailScreen() {
   const batch = batchQ.data;
   const events = batch ? eventsFromBatch(batch) : [];
   const name = batch?.green_beans?.name_zh ?? batch?.bean_name_snapshot ?? t.roast.detailTitle;
+  const chartRef = useRef<Svg>(null);
+
+  const doExportCsv = () => {
+    if (!batch) return;
+    exportRoastCsv(batch, events, curveQ.data ?? []).catch((e) =>
+      Alert.alert(t.errors.generic, e instanceof Error ? e.message : ''),
+    );
+  };
+
+  const doExportPng = () => {
+    if (!batch) return;
+    const svg = chartRef.current as unknown as { toDataURL?: (cb: (b: string) => void) => void };
+    if (!svg?.toDataURL) {
+      Alert.alert(t.errors.generic);
+      return;
+    }
+    svg.toDataURL((b64) => {
+      const dataUrl = b64.startsWith('data:') ? b64 : `data:image/png;base64,${b64}`;
+      exportRoastPng(batch, dataUrl).catch((e) => Alert.alert(t.errors.generic, e instanceof Error ? e.message : ''));
+    });
+  };
 
   const confirmDelete = () =>
     Alert.alert(t.common.delete, undefined, [
@@ -85,13 +109,26 @@ export default function RoastDetailScreen() {
 
       <Card style={{ padding: Spacing.one }}>
         {curveQ.data && curveQ.data.length > 1 ? (
-          <RoastChart points={curveQ.data} events={events} height={230} minSpanSec={batch.drop_sec ?? 600} />
+          <RoastChart
+            svgRef={chartRef}
+            points={curveQ.data}
+            events={events}
+            height={230}
+            minSpanSec={batch.drop_sec ?? 600}
+          />
         ) : (
           <View style={{ height: 120, alignItems: 'center', justifyContent: 'center' }}>
             <AppText color="textSecondary">{curveQ.isLoading ? t.common.loading : '—'}</AppText>
           </View>
         )}
       </Card>
+
+      {curveQ.data && curveQ.data.length > 1 ? (
+        <Row style={{ gap: Spacing.two }}>
+          <Button label={t.roast.exportCsv} variant="secondary" onPress={doExportCsv} style={{ flex: 1 }} />
+          <Button label={t.roast.exportImage} variant="secondary" onPress={doExportPng} style={{ flex: 1 }} />
+        </Row>
+      ) : null}
 
       <Card>
         {events.map((ev) => (

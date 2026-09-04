@@ -1,7 +1,6 @@
 /**
  * Temperature-sensor abstraction. The live-roast screen only ever talks to this
- * interface, so a Bluetooth (react-native-ble-plx) or USB-serial implementation
- * can drop in later without touching UI code.
+ * interface, so Bluetooth / USB-serial / mock implementations are interchangeable.
  */
 
 export type SensorReading = {
@@ -15,7 +14,31 @@ export type SensorReading = {
 
 export type SensorStatus = 'idle' | 'connecting' | 'connected' | 'error';
 
-export type SensorKind = 'mock' | 'ble' | 'usb';
+export type SensorKind = 'mock' | 'ble' | 'webserial';
+
+/** Turns a raw notification/line from a device into a reading (or null to skip). */
+export type ReadingParser = (raw: Uint8Array | string) => Partial<SensorReading> | null;
+
+export type ParserId = 'ascii-number' | 'ascii-bt-et' | 'artisan-csv' | 'int16-centi';
+
+export type BleSensorConfig = {
+  deviceId: string;
+  deviceName?: string;
+  serviceUuid: string;
+  notifyCharUuid: string;
+  parser: ParserId;
+};
+
+export type WebSerialSensorConfig = {
+  baudRate: number;
+  parser: ParserId;
+};
+
+export type SensorConfig = {
+  kind: SensorKind;
+  ble?: BleSensorConfig;
+  webserial?: WebSerialSensorConfig;
+};
 
 export interface Sensor {
   readonly kind: SensorKind;
@@ -27,4 +50,8 @@ export interface Sensor {
   /** Subscribe to readings. Returns an unsubscribe function. */
   subscribe(listener: (reading: SensorReading) => void): () => void;
   subscribeStatus(listener: (status: SensorStatus) => void): () => void;
+  /** Optional — only the mock simulator reacts to roaster controls. */
+  applyControls?(gas: number, airflow: number): void;
 }
+
+export const DEFAULT_SENSOR_CONFIG: SensorConfig = { kind: 'mock' };

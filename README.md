@@ -6,8 +6,11 @@
 - **框架**：Expo (React Native) + TypeScript + expo-router
 - **後端**：Supabase (Postgres + Auth + RLS)
 - **平台**：iOS / Android（Expo Go 或 dev build）、Windows 透過 Web/PWA
-- **溫度來源**：目前為 **模擬訊號**（`src/sensors/MockSensor.ts`）。藍牙 / USB 探針之後接在
-  `src/sensors/types.ts` 的 `Sensor` 介面後面，UI 不需改動。
+- **溫度來源**：`src/sensors/` 的 `Sensor` 介面，三種實作：
+  - `MockSensor` — 模擬訊號，任何環境可用（預設）
+  - `WebSerialSensor` — Web Serial API，桌面版 Chrome/Edge（Windows）連 USB 溫度轉接器
+  - `BleSensor` — `react-native-ble-plx`，**需要 dev build**（Expo Go 無法載入原生模組）
+  在「設定 → 溫度感測器」選擇、掃描配對、設定 UUID 與資料格式，選擇會存到裝置。
 
 ## 開發環境設定
 
@@ -42,6 +45,7 @@ src/
     suppliers/    供應商 CRUD
     blends/       拼配配方 CRUD
     stock/        lots/[beanId]（進貨批次）、new-lot、roasted（熟豆出入庫）
+  sensors/        Sensor 介面 + MockSensor / BleSensor / WebSerialSensor + parsers + Provider
   auth/           Supabase session provider
   components/     UI kit、圖表、清單列
   db/             react-query hooks（beans / roasts）+ 型別
@@ -54,4 +58,17 @@ src/
 
 - **階段 1（完成）**：登入、生豆型錄、即時烘焙（模擬）、烘焙曲線、雲端同步
 - **階段 2（完成）**：供應商、生豆進貨批次、烘焙時扣生豆庫存、熟豆庫存與出入庫、拼配配方
-- **階段 3**：藍牙探針（react-native-ble-plx + dev client）、USB 探針、雙曲線比對、匯出
+- **階段 3（完成）**：感測器抽象層（模擬 / Web Serial / BLE）+ 設定頁選擇與配對、
+  雙曲線比較（烘焙記錄頁 → 比較鈕）、烘焙記錄匯出 CSV / PNG
+
+### 藍牙 dev build
+
+Expo Go 不能載入 `react-native-ble-plx`。要用藍牙：
+
+```bash
+npx expo run:android          # 需 Android Studio；產生可裝的 dev build
+# 或用 EAS 雲端打包（不需 Mac）：
+npx eas build --profile development --platform android
+```
+
+app.json 已含 `react-native-ble-plx` 與 `expo-dev-client` 外掛設定。

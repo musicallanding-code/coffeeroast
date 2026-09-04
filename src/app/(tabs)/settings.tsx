@@ -2,6 +2,7 @@ import Constants from 'expo-constants';
 import { View } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
+import { SensorSettings } from '@/components/SensorSettings';
 import { SetupNotice } from '@/components/SetupNotice';
 import { AppText, Button, Card, Row, Screen } from '@/components/ui/kit';
 import { Spacing } from '@/constants/theme';
@@ -31,18 +32,10 @@ export default function SettingsScreen() {
         )}
       </Card>
 
-      <Card>
-        <AppText variant="label" color="textSecondary">
-          {t.settings.sensor}
-        </AppText>
-        <Row style={{ justifyContent: 'space-between' }}>
-          <AppText>{t.roast.sensorSource}</AppText>
-          <AppText>{t.roast.sensorMock}</AppText>
-        </Row>
-        <AppText variant="caption" color="textSecondary">
-          {t.settings.sensorMockNote}
-        </AppText>
-      </Card>
+      <AppText variant="label" color="textSecondary">
+        {t.settings.sensor}
+      </AppText>
+      <SensorSettings />
 
       <Card>
         <AppText variant="label" color="textSecondary">

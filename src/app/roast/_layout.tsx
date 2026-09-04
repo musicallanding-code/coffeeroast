@@ -17,6 +17,7 @@ export default function RoastLayout() {
       <Stack.Screen name="live" options={{ title: t.roast.liveTitle, headerBackVisible: false, gestureEnabled: false }} />
       <Stack.Screen name="summary" options={{ title: t.roast.finishTitle, headerBackVisible: false, gestureEnabled: false }} />
       <Stack.Screen name="[id]" options={{ title: t.roast.detailTitle }} />
+      <Stack.Screen name="compare" options={{ title: t.roast.compareTitle }} />
     </Stack>
   );
 }

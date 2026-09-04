@@ -30,6 +30,11 @@ export default function TabsLayout() {
         options={{
           title: t.tabs.roasts,
           tabBarIcon: ({ color, size }) => <Ionicons name="flame-outline" color={color} size={size} />,
+          headerRight: () => (
+            <Pressable onPress={() => router.push('/roast/compare')} hitSlop={12} style={{ paddingHorizontal: 16 }}>
+              <Ionicons name="git-compare-outline" size={22} color={theme.tint} />
+            </Pressable>
+          ),
         }}
       />
       <Tabs.Screen

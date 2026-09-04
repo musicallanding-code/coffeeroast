@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { RoastChart } from '@/components/RoastChart';
@@ -11,7 +11,8 @@ import { t } from '@/i18n/zh-TW';
 import { formatClock, rateOfRise } from '@/roast/roastMath';
 import { useSessionStore } from '@/roast/sessionStore';
 import { useRoastKeepAwake } from '@/roast/useRoastKeepAwake';
-import { MockSensor } from '@/sensors/MockSensor';
+import { useSensorConfig } from '@/sensors/SensorProvider';
+import type { Sensor, SensorStatus } from '@/sensors/types';
 import { useTheme } from '@/hooks/use-theme';
 
 const MARK_BUTTONS: RoastEventKind[] = ['turning_point', 'dry_end', 'first_crack', 'second_crack'];
@@ -20,7 +21,10 @@ export default function LiveRoastScreen() {
   useRoastKeepAwake();
   const router = useRouter();
   const theme = useTheme();
-  const sensorRef = useRef<MockSensor | null>(null);
+  const { makeSensor } = useSensorConfig();
+  const sensorRef = useRef<Sensor | null>(null);
+  const [sensorStatus, setSensorStatus] = useState<SensorStatus>('idle');
+  const [sensorLabel, setSensorLabel] = useState('');
 
   const status = useSessionStore((s) => s.status);
   const points = useSessionStore((s) => s.points);
@@ -42,19 +46,31 @@ export default function LiveRoastScreen() {
   }, [status, router]);
 
   useEffect(() => {
-    const sensor = new MockSensor();
+    const sensor = makeSensor();
     sensorRef.current = sensor;
+    setSensorLabel(sensor.label);
+    setSensorStatus(sensor.getStatus());
     const unsub = sensor.subscribe((r) => useSessionStore.getState().ingest(r));
-    sensor.connect();
+    const unsubStatus = sensor.subscribeStatus(setSensorStatus);
+    sensor.connect().catch((e: unknown) => {
+      Alert.alert(
+        t.roast.sensorConnectFailed,
+        e instanceof Error ? e.message : String(e),
+        [{ text: t.common.confirm }],
+      );
+    });
     return () => {
       unsub();
+      unsubStatus();
       sensor.disconnect();
       sensorRef.current = null;
     };
+    // makeSensor is stable per config; we intentionally start one session's sensor once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    sensorRef.current?.setControls(gas, airflow);
+    sensorRef.current?.applyControls?.(gas, airflow);
   }, [gas, airflow]);
 
   const ror = useMemo(() => rateOfRise(points), [points]);
@@ -97,9 +113,16 @@ export default function LiveRoastScreen() {
         <Metric label={t.roast.beanTemp} value={beanTemp != null ? `${beanTemp.toFixed(1)}°` : '–'} accent />
         <Metric label={t.roast.ror} value={ror != null ? `${ror.toFixed(1)}` : '–'} sub="°C/min" />
       </Row>
-      <AppText variant="caption" color="textSecondary">
-        {t.roast.drumTemp}: {drumTemp != null ? `${drumTemp.toFixed(1)}°C` : '–'}
-      </AppText>
+      <Row style={{ justifyContent: 'space-between' }}>
+        <AppText variant="caption" color="textSecondary">
+          {t.roast.drumTemp}: {drumTemp != null ? `${drumTemp.toFixed(1)}°C` : '–'}
+        </AppText>
+        <AppText
+          variant="caption"
+          color={sensorStatus === 'error' ? 'danger' : sensorStatus === 'connected' ? 'success' : 'textSecondary'}>
+          {sensorLabel} · {t.roast.sensorStatus[sensorStatus]}
+        </AppText>
+      </Row>
 
       <Card style={{ padding: Spacing.one }}>
         <RoastChart points={points} events={events} height={240} />

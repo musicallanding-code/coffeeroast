@@ -15,6 +15,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
+import { SensorProvider } from '@/sensors/SensorProvider';
 import { queryClient } from '@/lib/queryClient';
 import { t } from '@/i18n/zh-TW';
 
@@ -66,10 +67,12 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <ThemeProvider value={scheme === 'dark' ? DarkTheme : DefaultTheme}>
-              <StatusBar style="auto" />
-              <RootNavigator />
-            </ThemeProvider>
+            <SensorProvider>
+              <ThemeProvider value={scheme === 'dark' ? DarkTheme : DefaultTheme}>
+                <StatusBar style="auto" />
+                <RootNavigator />
+              </ThemeProvider>
+            </SensorProvider>
           </AuthProvider>
         </QueryClientProvider>
       </SafeAreaProvider>

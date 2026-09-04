@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type Ref } from 'react';
 import { View, type LayoutChangeEvent } from 'react-native';
 import Svg, { Circle, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
 
@@ -8,30 +8,44 @@ import { t } from '@/i18n/zh-TW';
 import { useTheme } from '@/hooks/use-theme';
 import { formatClock } from '@/roast/roastMath';
 
+type OverlaySeries = { points: CurvePoint[]; label?: string };
+
 type Props = {
   points: CurvePoint[];
   events?: RoastEvent[];
   height?: number;
   minSpanSec?: number;
   showDrum?: boolean;
+  /** A second bean-temp curve to overlay (for comparison). */
+  overlay?: OverlaySeries;
+  svgRef?: Ref<Svg>;
 };
 
 const PAD = { left: 34, right: 12, top: 12, bottom: 22 };
 
-export function RoastChart({ points, events = [], height = 260, minSpanSec = 600, showDrum = true }: Props) {
+export function RoastChart({
+  points,
+  events = [],
+  height = 260,
+  minSpanSec = 600,
+  showDrum = true,
+  overlay,
+  svgRef,
+}: Props) {
   const theme = useTheme();
   const [width, setWidth] = useState(0);
 
   const onLayout = (e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width);
 
   const model = useMemo(() => {
-    const lastSec = points.length ? points[points.length - 1].tSec : 0;
+    const allPoints = overlay ? [...points, ...overlay.points] : points;
+    const lastSec = allPoints.reduce((m, p) => Math.max(m, p.tSec), 0);
     const maxSec = Math.max(minSpanSec, Math.ceil((lastSec + 30) / 60) * 60);
 
     let tMin = 40;
     let tMax = 240;
-    if (points.length) {
-      const temps = points.flatMap((p) =>
+    if (allPoints.length) {
+      const temps = allPoints.flatMap((p) =>
         showDrum && p.drumTemp != null ? [p.beanTemp, p.drumTemp] : [p.beanTemp],
       );
       tMin = Math.max(0, Math.floor((Math.min(...temps) - 15) / 10) * 10);
@@ -39,7 +53,7 @@ export function RoastChart({ points, events = [], height = 260, minSpanSec = 600
       if (tMax - tMin < 60) tMax = tMin + 60;
     }
     return { maxSec, tMin, tMax };
-  }, [points, showDrum, minSpanSec]);
+  }, [points, overlay, showDrum, minSpanSec]);
 
   const plotW = Math.max(1, width - PAD.left - PAD.right);
   const plotH = Math.max(1, height - PAD.top - PAD.bottom);
@@ -47,8 +61,8 @@ export function RoastChart({ points, events = [], height = 260, minSpanSec = 600
   const sy = (temp: number) =>
     PAD.top + plotH - ((temp - model.tMin) / (model.tMax - model.tMin)) * plotH;
 
-  const line = (key: 'beanTemp' | 'drumTemp') => {
-    const pts = points.filter((p) => (key === 'beanTemp' ? true : p.drumTemp != null));
+  const line = (src: CurvePoint[], key: 'beanTemp' | 'drumTemp') => {
+    const pts = src.filter((p) => (key === 'beanTemp' ? true : p.drumTemp != null));
     if (pts.length < 2) return '';
     return pts
       .map((p, i) => {
@@ -71,7 +85,7 @@ export function RoastChart({ points, events = [], height = 260, minSpanSec = 600
   return (
     <View onLayout={onLayout} style={{ width: '100%', height, borderRadius: Radius.md, overflow: 'hidden' }}>
       {width > 0 && (
-        <Svg width={width} height={height}>
+        <Svg ref={svgRef} width={width} height={height}>
           <Rect x={0} y={0} width={width} height={height} fill={theme.background} />
 
           {tempTicks.map((d) => (
@@ -92,8 +106,11 @@ export function RoastChart({ points, events = [], height = 260, minSpanSec = 600
             </G>
           ))}
 
-          {showDrum && <Path d={line('drumTemp')} stroke={theme.drumTemp} strokeWidth={1.5} strokeDasharray="4 3" fill="none" />}
-          <Path d={line('beanTemp')} stroke={theme.beanTemp} strokeWidth={2.5} fill="none" strokeLinejoin="round" />
+          {showDrum && <Path d={line(points, 'drumTemp')} stroke={theme.drumTemp} strokeWidth={1.5} strokeDasharray="4 3" fill="none" />}
+          {overlay && (
+            <Path d={line(overlay.points, 'beanTemp')} stroke={theme.drumTemp} strokeWidth={2} fill="none" strokeLinejoin="round" opacity={0.9} />
+          )}
+          <Path d={line(points, 'beanTemp')} stroke={theme.beanTemp} strokeWidth={2.5} fill="none" strokeLinejoin="round" />
 
           {events.map((ev) => (
             <G key={ev.kind}>

@@ -1,30 +1,38 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View } from 'react-native';
 
+import { PickerRow } from '@/components/PickerRow';
 import { SetupNotice } from '@/components/SetupNotice';
 import { AppText, Button, Card, Row, Screen, TextField } from '@/components/ui/kit';
-import { Radius, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { useGreenBeans } from '@/db/beans';
+import { useAvailableLots } from '@/db/inventory';
 import { t } from '@/i18n/zh-TW';
+import { formatWeight } from '@/roast/roastMath';
 import { useSessionStore } from '@/roast/sessionStore';
-import { useTheme } from '@/hooks/use-theme';
 
 export default function StartRoastScreen() {
   const router = useRouter();
-  const theme = useTheme();
   const beans = useGreenBeans();
   const begin = useSessionStore((s) => s.begin);
 
   const [beanId, setBeanId] = useState<string | null>(null);
+  const [lotId, setLotId] = useState<string | null>(null);
   const [weight, setWeight] = useState('');
   const [roaster, setRoaster] = useState('');
 
+  const lots = useAvailableLots(beanId);
   const selectedBean = beans.data?.find((b) => b.id === beanId) ?? null;
+
+  useEffect(() => {
+    setLotId(null);
+  }, [beanId]);
 
   const start = () => {
     begin({
       beanId,
+      beanLotId: lotId,
       beanName: selectedBean?.name_zh ?? '',
       greenWeightG: weight ? Number(weight) : null,
       roasterName: roaster.trim(),
@@ -36,9 +44,6 @@ export default function StartRoastScreen() {
     <Screen scroll>
       <SetupNotice />
 
-      <AppText variant="label" color="textSecondary">
-        {t.roast.pickBean}
-      </AppText>
       {!beans.data?.length ? (
         <Card>
           <AppText color="textSecondary">{beans.isLoading ? t.common.loading : t.beans.empty}</AppText>
@@ -47,34 +52,29 @@ export default function StartRoastScreen() {
           ) : null}
         </Card>
       ) : (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ flexGrow: 0 }}
-          contentContainerStyle={{ gap: Spacing.two, paddingVertical: Spacing.one }}>
-          {(beans.data ?? []).map((b) => {
-            const active = b.id === beanId;
-            return (
-              <Pressable
-                key={b.id}
-                onPress={() => setBeanId(active ? null : b.id)}
-                style={{
-                  paddingHorizontal: Spacing.three,
-                  paddingVertical: Spacing.two,
-                  borderRadius: Radius.md,
-                  borderWidth: 1,
-                  borderColor: active ? theme.tint : theme.border,
-                  backgroundColor: active ? theme.tint : theme.backgroundElement,
-                  maxWidth: 220,
-                }}>
-                <AppText numberOfLines={1} color={active ? 'tintText' : 'text'}>
-                  {b.name_zh}
-                </AppText>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+        <PickerRow
+          label={t.roast.pickBean}
+          value={beanId}
+          onChange={(v) => setBeanId(v === beanId ? null : v)}
+          options={(beans.data ?? []).map((b) => ({ value: b.id, label: b.name_zh }))}
+        />
       )}
+
+      {beanId && (lots.data?.length ?? 0) > 0 ? (
+        <PickerRow
+          label={t.roast.pickLot}
+          value={lotId}
+          onChange={(v) => setLotId(v === lotId ? null : v)}
+          options={[
+            { value: null, label: t.roast.noLot },
+            ...(lots.data ?? []).map((l) => ({
+              value: l.id,
+              label: l.lot_code || l.purchased_on || t.lots.title,
+              sub: `${t.roast.lotRemaining} ${formatWeight(Number(l.qty_remaining_g))}`,
+            })),
+          ]}
+        />
+      ) : null}
 
       <TextField
         label={`${t.roast.greenWeight} (${t.common.grams})`}

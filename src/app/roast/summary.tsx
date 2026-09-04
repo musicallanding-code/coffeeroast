@@ -50,6 +50,7 @@ export default function RoastSummaryScreen() {
     save.mutate(
       {
         beanId: config.beanId,
+        beanLotId: config.beanLotId,
         beanName: config.beanName,
         roasterName: config.roasterName,
         startedAt: startedAt ?? Date.now(),

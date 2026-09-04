@@ -15,6 +15,7 @@ import {
 
 export type SaveRoastPayload = {
   beanId: string | null;
+  beanLotId: string | null;
   beanName: string;
   roasterName: string;
   startedAt: number;
@@ -99,6 +100,7 @@ export function useSaveRoast() {
       const insert: Record<string, unknown> = {
         batch_no: batchNo,
         green_bean_id: payload.beanId,
+        green_bean_lot_id: payload.beanLotId,
         bean_name_snapshot: payload.beanName || null,
         status: 'completed',
         started_at: startedAtIso,
@@ -133,11 +135,38 @@ export function useSaveRoast() {
           if (error) throw error;
         }
       }
+
+      // Inventory side-effects (best effort — a failure here must not lose the roast).
+      if (payload.beanLotId && payload.greenWeightG && payload.greenWeightG > 0) {
+        await supabase
+          .rpc('consume_green_lot', { p_lot_id: payload.beanLotId, p_grams: payload.greenWeightG })
+          .then(({ error }) => {
+            if (error) console.warn('consume_green_lot failed', error.message);
+          });
+      }
+      if (payload.roastedWeightG && payload.roastedWeightG > 0) {
+        await supabase
+          .from('roasted_stock_moves')
+          .insert({
+            batch_id: batch.id,
+            green_bean_id: payload.beanId,
+            direction: 'in',
+            qty_g: payload.roastedWeightG,
+            reason: 'roast',
+          })
+          .then(({ error }) => {
+            if (error) console.warn('roasted_stock_moves insert failed', error.message);
+          });
+      }
+
       return batch;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: qk.roastBatches });
       qc.invalidateQueries({ queryKey: qk.stats });
+      qc.invalidateQueries({ queryKey: qk.greenStock });
+      qc.invalidateQueries({ queryKey: qk.roastedStock });
+      qc.invalidateQueries({ queryKey: qk.roastedMoves });
     },
   });
 }

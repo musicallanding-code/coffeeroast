@@ -12,7 +12,9 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from './env';
  * `isSupabaseConfigured` first and shows a setup hint instead.
  */
 export const supabase = createClient(
-  isSupabaseConfigured ? SUPABASE_URL : 'https://placeholder.supabase.co',
+  // When unconfigured, point at a host that refuses instantly so queries fail
+  // fast and screens fall back to their empty/setup state instead of hanging.
+  isSupabaseConfigured ? SUPABASE_URL : 'http://127.0.0.1:9',
   isSupabaseConfigured ? SUPABASE_ANON_KEY : 'placeholder-anon-key',
   {
     auth: {

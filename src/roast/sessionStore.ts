@@ -5,6 +5,7 @@ import type { SensorReading } from '@/sensors/types';
 
 export type SessionConfig = {
   beanId: string | null;
+  beanLotId: string | null;
   beanName: string;
   greenWeightG: number | null;
   roasterName: string;
@@ -35,6 +36,7 @@ type SessionState = {
 
 const initialConfig: SessionConfig = {
   beanId: null,
+  beanLotId: null,
   beanName: '',
   greenWeightG: null,
   roasterName: '',

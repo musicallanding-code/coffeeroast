@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
 
 import { BeanForm } from '@/components/BeanForm';
-import { AppText, Card, Row, Screen } from '@/components/ui/kit';
+import { AppText, Button, Card, Row, Screen } from '@/components/ui/kit';
 import { Spacing } from '@/constants/theme';
 import { useArchiveGreenBean, useGreenBean, useUpdateGreenBean } from '@/db/beans';
 import { t } from '@/i18n/zh-TW';
@@ -72,6 +72,11 @@ export default function BeanDetailScreen() {
       ) : (
         <View style={{ gap: Spacing.two }}>
           {bean.name_en ? <AppText color="textSecondary">{bean.name_en}</AppText> : null}
+          <Button
+            label={`${t.inventory.lots} / ${t.inventory.greenStock}`}
+            variant="secondary"
+            onPress={() => router.push(`/stock/lots/${id}`)}
+          />
           <Card>
             <Field label={t.beans.code} value={bean.code} />
             <Field label={t.beans.country} value={bean.region} />

@@ -24,7 +24,9 @@ npm start                         # 掃 QR code 用 iPhone 的 Expo Go 開啟
 ## Supabase 設定
 
 1. 建立 Supabase 專案。
-2. SQL Editor 貼上並執行 `supabase/migrations/0001_init.sql`（建表 + RLS + 新使用者觸發器）。
+2. SQL Editor 依序貼上並執行：
+   - `supabase/migrations/0001_init.sql`（建表 + RLS + 新使用者觸發器）
+   - `supabase/migrations/0002_phase2_inventory.sql`（拼配、庫存 view 與函式）
 3. Authentication → Providers 開啟 Email（開發時可關閉 email 驗證以加速）。
 4. 把 Project URL 與 anon key 填入 `.env.local`。
 
@@ -34,9 +36,12 @@ npm start                         # 掃 QR code 用 iPhone 的 Expo Go 開啟
 src/
   app/            expo-router 路由
     (auth)/       登入
-    (tabs)/       首頁 / 烘焙記錄 / 生豆 / 設定
+    (tabs)/       首頁 / 烘焙記錄 / 生豆 / 庫存 / 設定
     roast/        start → live → summary → [id]
     beans/        new / [id]
+    suppliers/    供應商 CRUD
+    blends/       拼配配方 CRUD
+    stock/        lots/[beanId]（進貨批次）、new-lot、roasted（熟豆出入庫）
   auth/           Supabase session provider
   components/     UI kit、圖表、清單列
   db/             react-query hooks（beans / roasts）+ 型別
@@ -47,6 +52,6 @@ src/
 
 ## 路線圖
 
-- **MVP（目前）**：登入、生豆型錄、即時烘焙（模擬）、烘焙曲線、雲端同步
-- **階段 2**：生豆進貨批次 / 庫存扣減、熟豆庫存、供應商、拼配配方
+- **階段 1（完成）**：登入、生豆型錄、即時烘焙（模擬）、烘焙曲線、雲端同步
+- **階段 2（完成）**：供應商、生豆進貨批次、烘焙時扣生豆庫存、熟豆庫存與出入庫、拼配配方
 - **階段 3**：藍牙探針（react-native-ble-plx + dev client）、USB 探針、雙曲線比對、匯出

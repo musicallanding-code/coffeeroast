@@ -1,5 +1,12 @@
 import type { CurvePoint, RoastEventKind } from '@/db/types';
 
+/** Grams as "1.2 kg" / "850 g". */
+export function formatWeight(grams: number | null | undefined): string {
+  if (grams == null) return '–';
+  if (Math.abs(grams) >= 1000) return `${(grams / 1000).toFixed(grams % 1000 === 0 ? 0 : 1)} kg`;
+  return `${Math.round(grams)} g`;
+}
+
 /** "mm:ss" from seconds. */
 export function formatClock(totalSeconds: number): string {
   const s = Math.max(0, Math.round(totalSeconds));

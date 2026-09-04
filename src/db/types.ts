@@ -72,6 +72,108 @@ export type GreenBeanInput = {
   flavor_notes?: string | null;
 };
 
+export type SupplierRow = {
+  id: string;
+  owner: string;
+  name: string;
+  contact: string | null;
+  phone: string | null;
+  address: string | null;
+  note: string | null;
+  created_at: string;
+};
+
+export type SupplierInput = {
+  name: string;
+  contact?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  note?: string | null;
+};
+
+export type GreenBeanLotRow = {
+  id: string;
+  owner: string;
+  green_bean_id: string;
+  supplier_id: string | null;
+  lot_code: string | null;
+  purchased_on: string | null;
+  qty_in_g: number;
+  qty_remaining_g: number;
+  unit_price: number | null;
+  currency: string;
+  note: string | null;
+  created_at: string;
+};
+
+export type GreenBeanLotInput = {
+  green_bean_id: string;
+  supplier_id?: string | null;
+  lot_code?: string | null;
+  purchased_on?: string | null;
+  qty_in_g: number;
+  unit_price?: number | null;
+  currency?: string;
+  note?: string | null;
+};
+
+export type GreenBeanLotWithSupplier = GreenBeanLotRow & {
+  suppliers: Pick<SupplierRow, 'id' | 'name'> | null;
+};
+
+export type GreenBeanStockRow = {
+  green_bean_id: string;
+  owner: string;
+  name_zh: string;
+  name_en: string | null;
+  remaining_g: number;
+  total_in_g: number;
+  lot_count: number;
+};
+
+export type RoastedStockRow = {
+  green_bean_id: string | null;
+  owner: string;
+  name_zh: string | null;
+  remaining_g: number;
+};
+
+export type RoastedStockMoveRow = {
+  id: string;
+  owner: string;
+  batch_id: string | null;
+  green_bean_id: string | null;
+  moved_on: string;
+  direction: 'in' | 'out';
+  qty_g: number;
+  reason: string | null;
+  note: string | null;
+  created_at: string;
+};
+
+export type BlendRow = {
+  id: string;
+  owner: string;
+  name: string;
+  note: string | null;
+  archived: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type BlendComponentRow = {
+  id: string;
+  owner: string;
+  blend_id: string;
+  green_bean_id: string;
+  parts: number;
+  sort_order: number;
+};
+
+export type BlendComponentWithBean = BlendComponentRow & {
+  green_beans: Pick<GreenBeanRow, 'id' | 'name_zh' | 'name_en'> | null;
+};
+
 export type RoasterRow = {
   id: string;
   owner: string;

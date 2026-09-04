@@ -50,6 +50,9 @@ function RootNavigator() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="roast" />
+      <Stack.Screen name="suppliers" />
+      <Stack.Screen name="blends" />
+      <Stack.Screen name="stock" />
       <Stack.Screen name="beans/new" options={{ headerShown: true, title: t.beans.newTitle, presentation: 'modal' }} />
       <Stack.Screen name="beans/[id]" options={{ headerShown: true }} />
     </Stack>

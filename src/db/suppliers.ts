@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { demo, isDemoMode } from '@/demo/demoStore';
 import { qk } from '@/lib/queryClient';
 import { supabase } from '@/lib/supabase';
 
@@ -9,6 +10,7 @@ export function useSuppliers() {
   return useQuery({
     queryKey: qk.suppliers,
     queryFn: async (): Promise<SupplierRow[]> => {
+      if (isDemoMode) return demo.listSuppliers();
       const { data, error } = await supabase
         .from('suppliers')
         .select('*')
@@ -24,6 +26,7 @@ export function useSupplier(id: string | undefined) {
     queryKey: id ? qk.supplier(id) : ['suppliers', 'none'],
     enabled: !!id,
     queryFn: async (): Promise<SupplierRow | null> => {
+      if (isDemoMode) return demo.getSupplier(id!);
       const { data, error } = await supabase.from('suppliers').select('*').eq('id', id).maybeSingle();
       if (error) throw error;
       return data;
@@ -35,6 +38,7 @@ export function useCreateSupplier() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: SupplierInput): Promise<SupplierRow> => {
+      if (isDemoMode) return demo.createSupplier(input);
       const { data, error } = await supabase.from('suppliers').insert(input).select('*').single();
       if (error) throw error;
       return data;
@@ -47,6 +51,7 @@ export function useUpdateSupplier() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, input }: { id: string; input: SupplierInput }): Promise<SupplierRow> => {
+      if (isDemoMode) return demo.updateSupplier(id, input);
       const { data, error } = await supabase
         .from('suppliers')
         .update(input)
@@ -67,6 +72,7 @@ export function useDeleteSupplier() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
+      if (isDemoMode) return demo.deleteSupplier(id);
       const { error } = await supabase.from('suppliers').delete().eq('id', id);
       if (error) throw error;
     },

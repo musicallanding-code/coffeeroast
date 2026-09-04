@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { demo, isDemoMode } from '@/demo/demoStore';
 import { qk } from '@/lib/queryClient';
 import { supabase } from '@/lib/supabase';
 
@@ -18,6 +19,7 @@ export function useGreenBeanLots(beanId: string | undefined) {
     queryKey: beanId ? qk.lots(beanId) : ['green_bean_lots', 'none'],
     enabled: !!beanId,
     queryFn: async (): Promise<GreenBeanLotWithSupplier[]> => {
+      if (isDemoMode) return demo.listLots(beanId!).map(demo.lotWithSupplier) as GreenBeanLotWithSupplier[];
       const { data, error } = await supabase
         .from('green_bean_lots')
         .select('*, suppliers(id, name)')
@@ -36,6 +38,7 @@ export function useAvailableLots(beanId: string | null | undefined) {
     queryKey: beanId ? [...qk.lots(beanId), 'available'] : ['green_bean_lots', 'none'],
     enabled: !!beanId,
     queryFn: async (): Promise<GreenBeanLotWithSupplier[]> => {
+      if (isDemoMode) return demo.availableLots(beanId!).map(demo.lotWithSupplier) as GreenBeanLotWithSupplier[];
       const { data, error } = await supabase
         .from('green_bean_lots')
         .select('*, suppliers(id, name)')
@@ -52,6 +55,7 @@ export function useCreateLot() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: GreenBeanLotInput) => {
+      if (isDemoMode) return demo.createLot(input);
       const { data, error } = await supabase
         .from('green_bean_lots')
         .insert({ ...input, qty_remaining_g: input.qty_in_g })
@@ -72,6 +76,7 @@ export function useAdjustLot() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, qty_remaining_g }: { id: string; qty_remaining_g: number }) => {
+      if (isDemoMode) return demo.adjustLot(id, qty_remaining_g);
       const { data, error } = await supabase
         .from('green_bean_lots')
         .update({ qty_remaining_g })
@@ -92,6 +97,7 @@ export function useDeleteLot() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id }: { id: string; beanId: string }) => {
+      if (isDemoMode) return demo.deleteLot(id);
       const { error } = await supabase.from('green_bean_lots').delete().eq('id', id);
       if (error) throw error;
     },
@@ -108,6 +114,7 @@ export function useGreenBeanStock() {
   return useQuery({
     queryKey: qk.greenStock,
     queryFn: async (): Promise<GreenBeanStockRow[]> => {
+      if (isDemoMode) return demo.greenBeanStock();
       const { data, error } = await supabase
         .from('green_bean_stock')
         .select('*')
@@ -122,6 +129,7 @@ export function useRoastedStock() {
   return useQuery({
     queryKey: qk.roastedStock,
     queryFn: async (): Promise<RoastedStockRow[]> => {
+      if (isDemoMode) return demo.roastedStock();
       const { data, error } = await supabase
         .from('roasted_stock')
         .select('*')
@@ -136,6 +144,7 @@ export function useRoastedMoves() {
   return useQuery({
     queryKey: qk.roastedMoves,
     queryFn: async (): Promise<RoastedStockMoveRow[]> => {
+      if (isDemoMode) return demo.roastedMoves();
       const { data, error } = await supabase
         .from('roasted_stock_moves')
         .select('*')
@@ -160,6 +169,7 @@ export function useRecordRoastedMove() {
       note?: string | null;
       moved_on?: string;
     }) => {
+      if (isDemoMode) return demo.recordRoastedMove(input);
       const { error } = await supabase.from('roasted_stock_moves').insert(input);
       if (error) throw error;
     },

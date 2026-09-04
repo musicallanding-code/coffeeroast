@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { demo, isDemoMode } from '@/demo/demoStore';
 import { qk } from '@/lib/queryClient';
 import { supabase } from '@/lib/supabase';
 
@@ -15,6 +16,7 @@ export function useBlends() {
   return useQuery({
     queryKey: qk.blends,
     queryFn: async (): Promise<BlendWithComponents[]> => {
+      if (isDemoMode) return demo.listBlends() as unknown as BlendWithComponents[];
       const { data, error } = await supabase
         .from('blends')
         .select('*, blend_components(*, green_beans(id, name_zh, name_en))')
@@ -31,6 +33,7 @@ export function useBlend(id: string | undefined) {
     queryKey: id ? qk.blend(id) : ['blends', 'none'],
     enabled: !!id,
     queryFn: async (): Promise<BlendWithComponents | null> => {
+      if (isDemoMode) return demo.getBlend(id!) as unknown as BlendWithComponents | null;
       const { data, error } = await supabase
         .from('blends')
         .select('*, blend_components(*, green_beans(id, name_zh, name_en))')
@@ -66,6 +69,7 @@ export function useSaveBlend() {
       note: string | null;
       components: BlendComponentInput[];
     }): Promise<string> => {
+      if (isDemoMode) return demo.saveBlend(input);
       let blendId = input.id;
       if (blendId) {
         const { error } = await supabase
@@ -96,6 +100,7 @@ export function useArchiveBlend() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
+      if (isDemoMode) return demo.archiveBlend(id);
       const { error } = await supabase.from('blends').update({ archived: true }).eq('id', id);
       if (error) throw error;
     },

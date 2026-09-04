@@ -6,7 +6,6 @@ import { RoastChart } from '@/components/RoastChart';
 import { AppText, Button, Card, Row, TextField } from '@/components/ui/kit';
 import { Radius, Spacing } from '@/constants/theme';
 import { useSaveRoast } from '@/db/roasts';
-import { isSupabaseConfigured } from '@/lib/supabase';
 import { t } from '@/i18n/zh-TW';
 import { developmentTimeRatio, formatClock, weightLossPct } from '@/roast/roastMath';
 import { useSessionStore } from '@/roast/sessionStore';
@@ -43,10 +42,6 @@ export default function RoastSummaryScreen() {
   );
 
   const doSave = () => {
-    if (!isSupabaseConfigured) {
-      Alert.alert(t.errors.missingSupabase);
-      return;
-    }
     save.mutate(
       {
         beanId: config.beanId,

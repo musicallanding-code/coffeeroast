@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { demo, isDemoMode } from '@/demo/demoStore';
 import { qk } from '@/lib/queryClient';
 import { supabase } from '@/lib/supabase';
 
@@ -31,6 +32,7 @@ export function useRoastBatches() {
   return useQuery({
     queryKey: qk.roastBatches,
     queryFn: async (): Promise<RoastBatchWithBean[]> => {
+      if (isDemoMode) return demo.listBatches();
       const { data, error } = await supabase
         .from('roast_batches')
         .select('*, green_beans(id, name_zh, name_en)')
@@ -46,6 +48,7 @@ export function useRoastBatch(id: string | undefined) {
     queryKey: id ? qk.roastBatch(id) : ['roast_batches', 'none'],
     enabled: !!id,
     queryFn: async (): Promise<RoastBatchWithBean | null> => {
+      if (isDemoMode) return demo.getBatch(id!);
       const { data, error } = await supabase
         .from('roast_batches')
         .select('*, green_beans(id, name_zh, name_en)')
@@ -62,6 +65,7 @@ export function useRoastCurve(id: string | undefined) {
     queryKey: id ? qk.roastCurve(id) : ['roast_curve', 'none'],
     enabled: !!id,
     queryFn: async (): Promise<CurvePoint[]> => {
+      if (isDemoMode) return demo.getCurve(id!);
       const { data, error } = await supabase
         .from('roast_curve_points')
         .select('*')
@@ -77,6 +81,7 @@ export function useStats() {
   return useQuery({
     queryKey: qk.stats,
     queryFn: async () => {
+      if (isDemoMode) return demo.stats();
       const [batches, beans] = await Promise.all([
         supabase.from('roast_batches').select('id', { count: 'exact', head: true }),
         supabase.from('green_beans').select('id', { count: 'exact', head: true }).eq('archived', false),
@@ -93,6 +98,7 @@ export function useSaveRoast() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (payload: SaveRoastPayload): Promise<RoastBatchRow> => {
+      if (isDemoMode) return demo.saveRoast(payload);
       const drop = payload.events.find((e) => e.kind === 'drop');
       const startedAtIso = new Date(payload.startedAt).toISOString();
       const batchNo = buildBatchNo(payload.startedAt);
@@ -175,6 +181,7 @@ export function useDeleteRoastBatch() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
+      if (isDemoMode) return demo.deleteBatch(id);
       const { error } = await supabase.from('roast_batches').delete().eq('id', id);
       if (error) throw error;
     },

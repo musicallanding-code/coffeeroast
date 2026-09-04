@@ -1,5 +1,9 @@
 # 咖啡烘焙記錄 (coffeeroast)
 
+**線上 POC**：https://musicallanding-code.github.io/coffeeroast/（推到 `main` 會自動重新部署，見
+`.github/workflows/deploy-web.yml`）。未設定 Supabase 時會自動使用 `src/demo/` 的示範資料，方便直接
+檢視整個 UI/UX；新增/編輯只在當次瀏覽中生效，重新整理會重置。
+
 跨平台咖啡烘焙記錄 App — 即時記錄烘焙溫度曲線、事件標記（回溫點 / 脫水 / 一爆 / 二爆 / 下豆）、
 生豆型錄，資料以 Supabase 雲端同步。重寫自舊版 Windows FoxPro 程式 `cafe4`。
 
@@ -46,6 +50,7 @@ src/
     blends/       拼配配方 CRUD
     stock/        lots/[beanId]（進貨批次）、new-lot、roasted（熟豆出入庫）
   sensors/        Sensor 介面 + MockSensor / BleSensor / WebSerialSensor + parsers + Provider
+  demo/           未設定 Supabase 時的示範資料與記憶體資料層（讓 POC 可直接檢視）
   auth/           Supabase session provider
   components/     UI kit、圖表、清單列
   db/             react-query hooks（beans / roasts）+ 型別

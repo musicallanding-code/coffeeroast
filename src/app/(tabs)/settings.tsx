@@ -28,7 +28,7 @@ export default function SettingsScreen() {
             <Button label={t.auth.signOut} variant="secondary" onPress={signOut} style={{ marginTop: Spacing.two }} />
           </>
         ) : (
-          <AppText color="textSecondary">{t.errors.missingSupabase}</AppText>
+          <AppText color="textSecondary">{t.demo.banner}</AppText>
         )}
       </Card>
 

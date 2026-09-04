@@ -241,6 +241,10 @@ export const t = {
     saveFailed: '儲存失敗。',
     missingSupabase: '尚未設定 Supabase。請填入 .env 的 EXPO_PUBLIC_SUPABASE_URL 與 EXPO_PUBLIC_SUPABASE_ANON_KEY。',
   },
+
+  demo: {
+    banner: '展示模式：目前顯示示範資料（未連接雲端資料庫）。新增/編輯僅在本次瀏覽中生效，重新整理會重置。',
+  },
 } as const;
 
 export type Strings = typeof t;
